@@ -1,8 +1,7 @@
-getwd()
-wd <- getwd()
+setwd(paste0(getwd(), '/data/'))
 
 files <- list.files(wd, "north_korea_missile_test_database.xlsx")
-files <- files[2]
+files <- files[]
 
 read_excel_allsheets <- function(filename) { 
   sheets <- readxl::excel_sheets(filename) 
