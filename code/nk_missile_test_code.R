@@ -29,3 +29,7 @@ data_summary <- out[[1]]$`Data Summary`
 missile_summary <- out[[1]]$`Missile Summary`
 facilities <- out[[1]]$`Facilities`
 rm(out, files, read_excel_allsheets)
+
+tb_data <- missile_tests
+
+save(tb_data, file = paste0(here::here(), '/data/tb_data.csv'))
