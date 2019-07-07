@@ -73,10 +73,12 @@ nk_missile_tests$Apogee <- gsub("[a-zA-Z/, ]", "", nk_missile_tests$Apogee)
 nk_missile_tests$Apogee <- as.numeric(nk_missile_tests$Apogee)
 nk_missile_tests$DistanceTravelled <- gsub("[a-zA-Z/, ]", "", nk_missile_tests$DistanceTravelled)
 nk_missile_tests$DistanceTravelled <- as.numeric(nk_missile_tests$DistanceTravelled)
+nk_missile_tests$Date <- as.character(nk_missile_tests$Date)
 
 irn_missile_tests$Country <- "Iran"
 irn_missile_tests <- irn_missile_tests %>% 
   dplyr::rename(Date = DateOccurred)
+irn_missile_tests$Date <- as.character(irn_missile_tests$Date)
 
 irq_missile_tests$Country <- "Iraq"
 irq_missile_tests <- irq_missile_tests %>%
@@ -84,8 +86,10 @@ irq_missile_tests <- irq_missile_tests %>%
                 AdditionalInformation = Status,
                 MaxRange = `Maximum Range (km)`,
                 PayloadKG = `Payload (kg)`)
-
+irq_missile_tests$Date[irq_missile_tests$Date == "05-Dec-89"] <- "1989-10-05"
+irq_missile_tests$Date[irq_missile_tests$Date == "Jun-00"] <- "2000-06-01"
+irq_missile_tests$Date[irq_missile_tests$Date == "May-93"] <- "1993-05-01"
 # Join data
 join <- dplyr::full_join(nk_missile_tests, irn_missile_tests)
-join <- dplyr::left_join(join, irq_missile_tests)
+join <- dplyr::full_join(join, irq_missile_tests)
 #save(tb_data, file = paste0(here::here(), '/data/tb_data.csv'))
