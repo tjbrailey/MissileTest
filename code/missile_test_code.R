@@ -99,7 +99,16 @@ join <- dplyr::full_join(join, irq_missile_tests)
 missile_dat_final <- join
 rm(join)
 
+# Check and clean
+visdat::vis_dat(missile_dat_final)
+Amelia::missmap(missile_dat_final)
+
+missile_dat_final$Date <- as.character(missile_dat_final$Date)
+missile_dat_final$DateEntered <- as.character(missile_dat_final$DateEntered)
+missile_dat_final$LaunchTimeUTC <- as.character(missile_dat_final$LaunchTimeUTC)
+
 # Save joined data
 readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
 
-visdat::vis_dat(missile_dat_final)
+
+
