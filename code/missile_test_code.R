@@ -100,6 +100,6 @@ missile_dat_final <- join
 rm(join)
 
 # Save joined data
-write.csv(missile_dat_final, file = paste0(here::here(), '/data/missile_dat_final.csv'))
+readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
 
 visdat::vis_dat(missile_dat_final)
