@@ -1,6 +1,8 @@
 ### Missile Test Temporal Study ###
           ### POLI 170A ###
 
+rm(list = ls())
+
 # Setup
 setwd(paste0(getwd(), '/data/'))
 wd<-setwd(getwd())
@@ -89,7 +91,15 @@ irq_missile_tests <- irq_missile_tests %>%
 irq_missile_tests$Date[irq_missile_tests$Date == "05-Dec-89"] <- "1989-10-05"
 irq_missile_tests$Date[irq_missile_tests$Date == "Jun-00"] <- "2000-06-01"
 irq_missile_tests$Date[irq_missile_tests$Date == "May-93"] <- "1993-05-01"
+
 # Join data
 join <- dplyr::full_join(nk_missile_tests, irn_missile_tests)
 join <- dplyr::full_join(join, irq_missile_tests)
-#save(tb_data, file = paste0(here::here(), '/data/tb_data.csv'))
+
+missile_dat_final <- join
+rm(join)
+
+# Save joined data
+save(missile_dat_final, file = paste0(here::here(), '/data/missile_dat_final.csv'))
+
+visdat::vis_dat(missile_dat_final)
