@@ -48,6 +48,9 @@ irq_missile_tests <- rio::import("iraq_missile_launch_database.csv")
 colnames(irq_missile_tests) <- as.character(irq_missile_tests[1,])
 irq_missile_tests <- irq_missile_tests[-1,]
 
+# Install PAK data
+pak_missile_tests <- rio::import("pakistan_missile_launch_database.csv")
+
 # Clean data
 nk_missile_tests$Country <- "North Korea"
 nk_missile_tests <- nk_missile_tests %>%
@@ -95,6 +98,7 @@ irq_missile_tests$Date[irq_missile_tests$Date == "May-93"] <- "1993-05-01"
 # Join data
 join <- dplyr::full_join(nk_missile_tests, irn_missile_tests)
 join <- dplyr::full_join(join, irq_missile_tests)
+join <- dplyr::full_join(join, pak_missile_tests)
 
 missile_dat_final <- join
 rm(join)
