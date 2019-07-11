@@ -130,5 +130,3 @@ missile_dat_final$ProxToEventWK <- NA
 
 # Save joined data
 readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
-
-
