@@ -111,8 +111,24 @@ missile_dat_final$Date <- as.character(missile_dat_final$Date)
 missile_dat_final$DateEntered <- as.character(missile_dat_final$DateEntered)
 missile_dat_final$LaunchTimeUTC <- as.character(missile_dat_final$LaunchTimeUTC)
 
+missile_dat_final$EventID <- 1:nrow(missile_dat_final)
+
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Scud-B"] <- "SRBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Hussein"] <- "SRBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Abbas"] <- "SRBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Condor II/ BADR-2000"] <- "MRBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "FK120/ Sakr 200"] <- "SRBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Fahad (Al Fahd)"] <- "SRBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Abid"] <- "SLV" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Tammuz I"] <- "SLV" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Samoud"] <- "TBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Ababil"] <- "SRBM" 
+missile_dat_final$MissileFamily[missile_dat_final$MissileName == "J-1"] <- "SRBM"
+
+missile_dat_final$PoliEvent <- NA
+missile_dat_final$ProxToEventWK <- NA
+
 # Save joined data
 readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
-
 
 
