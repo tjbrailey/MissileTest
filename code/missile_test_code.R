@@ -125,8 +125,5 @@ missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Samoud"] <-
 missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Ababil"] <- "SRBM" 
 missile_dat_final$MissileFamily[missile_dat_final$MissileName == "J-1"] <- "SRBM"
 
-missile_dat_final$PoliEvent <- NA
-missile_dat_final$ProxToEventWK <- NA
-
 # Save joined data
 readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
