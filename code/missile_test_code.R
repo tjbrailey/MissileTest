@@ -103,15 +103,11 @@ join <- dplyr::full_join(join, pak_missile_tests)
 missile_dat_final <- join
 rm(join)
 
-# Check and clean
-visdat::vis_dat(missile_dat_final)
-Amelia::missmap(missile_dat_final)
+# Clean
 
 missile_dat_final$Date <- as.character(missile_dat_final$Date)
 missile_dat_final$DateEntered <- as.character(missile_dat_final$DateEntered)
 missile_dat_final$LaunchTimeUTC <- as.character(missile_dat_final$LaunchTimeUTC)
-
-missile_dat_final$EventID <- 1:nrow(missile_dat_final)
 
 missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Scud-B"] <- "SRBM" 
 missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Hussein"] <- "SRBM" 
@@ -125,5 +121,56 @@ missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Samoud"] <-
 missile_dat_final$MissileFamily[missile_dat_final$MissileName == "Al Ababil"] <- "SRBM" 
 missile_dat_final$MissileFamily[missile_dat_final$MissileName == "J-1"] <- "SRBM"
 
+  # Create new variables to be manually completed
+missile_dat_final$EventUNSCResolution <- NA
+missile_dat_final$EventDiplomaticMeeting <- NA
+missile_dat_final$EventNotes <- NA
+missile_dat_final$EventSource <- NA
+
+missile_dat_final$TestDummy <- 1
+
+  # Set Y to country/year/month
+missile_dat_final$Date <- stringr::str_sub(missile_dat_final$Date, end = -4)
+missile_dat_final$Month <- stringr::str_sub(missile_dat_final$Date, start = 6)
+missile_dat_final$Month <- as.numeric(missile_dat_final$Month)
+
+missile_dat_final$Date <- stringr::str_sub(missile_dat_final$Date, end = 4)
+missile_dat_final <- dplyr::rename(missile_dat_final, Year = Date)
+missile_dat_final$Year = as.numeric(missile_dat_final$Year) 
+
+missile_dat_final <- missile_dat_final %>%
+  dplyr::select(-EventID) %>%
+  dplyr::select(Year, Month, Country, TestDummy, dplyr::everything())
+
+    # Get unique missile occurances 
+missile_dat_final <- missile_dat_final %>%
+  dplyr::distinct(Year, Month, Country, .keep_all = TRUE) %>% 
+  tidyr::drop_na(Year)
+
+    # Complete years and months 
+missile_dat_final <- dplyr::arrange(missile_dat_final, Year)
+
+missile_dat_final <- missile_dat_final %>%
+  tidyr::complete(Country, Year = 1984:2019, 
+                  fill = list(incidents = 0)) %>%
+  tidyr::complete(Year, Month = 1:12,
+                  fill = list(incidents = 0))
+
+    # Fill in variables
+missile_dat_final <- missile_dat_final %>%
+  dplyr::mutate(TestDummy = ifelse(is.na(TestDummy), 0, TestDummy))
+
+# Check 
+visdat::vis_dat(missile_dat_final)
+Amelia::missmap(missile_dat_final)
+
 # Save joined data
 readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
+
+# Manaul data entry will occur at this point 
+# Data will be re-uploaded into R as missile_dat_final_manual_edits
+
+missile_dat_final_manual_edits <- rio::import("missile_dat_final_manual_edits.csv")
+
+visdat::vis_dat(missile_dat_final_manual_edits)
+Amelia::missmap(missile_dat_final_manual_edits)
