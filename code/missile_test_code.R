@@ -123,9 +123,12 @@ missile_dat_final$MissileFamily[missile_dat_final$MissileName == "J-1"] <- "SRBM
 
   # Create new variables to be manually completed
 missile_dat_final$EventUNSCResolution <- NA
-missile_dat_final$EventDiplomaticMeeting <- NA
+missile_dat_final$EventHOSVisit <- NA
+missile_dat_final$EventHOSTravel <- NA
 missile_dat_final$EventNotes <- NA
 missile_dat_final$EventSource <- NA
+missile_dat_final$TestCount <- NA
+missile_dat_final$Crisis <- NA
 
 missile_dat_final$TestDummy <- 1
 
@@ -140,7 +143,12 @@ missile_dat_final$Year = as.numeric(missile_dat_final$Year)
 
 missile_dat_final <- missile_dat_final %>%
   dplyr::select(-EventID) %>%
-  dplyr::select(Year, Month, Country, TestDummy, dplyr::everything())
+  dplyr::select(Country, 
+                Year, 
+                Month, 
+                TestDummy, 
+                TestCount, 
+                dplyr::everything())
 
     # Get unique missile occurances 
 missile_dat_final <- missile_dat_final %>%
@@ -148,7 +156,8 @@ missile_dat_final <- missile_dat_final %>%
   tidyr::drop_na(Year)
 
     # Complete years and months 
-missile_dat_final <- dplyr::arrange(missile_dat_final, Year)
+missile_dat_final <- dplyr::arrange(missile_dat_final, Country) %>%
+  dplyr::group_by(Country)
 
 missile_dat_final <- missile_dat_final %>%
   tidyr::complete(Country, Year = 1984:2019, 
@@ -167,12 +176,45 @@ Amelia::missmap(missile_dat_final)
 # Save joined data
 readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
 
+
 # Manaul data entry will occur at this point 
 # Data will be re-uploaded into R as missile_dat_final_manual_edits
 
+
+# Load manually edited data
 missile_dat_final_manual_edits <- rio::import("missile_dat_final_manual_edits.csv")
 
+# Visualize data
 visdat::vis_dat(missile_dat_final_manual_edits)
 Amelia::missmap(missile_dat_final_manual_edits)
 
+# Create lag variables for event variables
+missile_dat_final_manual_edits <- plyr::ddply(missile_dat_final_manual_edits, plyr::.(Country), transform, EventUNSCResolutionLag1 =
+                c(NA, EventUNSCResolution[-length(EventUNSCResolution)]
+                )
+)
 
+missile_dat_final_manual_edits <- plyr::ddply(missile_dat_final_manual_edits, plyr::.(Country), transform, EventUNSCResolutionLag2 =
+                                                c(NA, EventUNSCResolutionLag1[-length(EventUNSCResolutionLag1)]
+                                                )
+)
+
+# Drop columns we don't need for the analysis and organize
+missile_dat_final_manual_edits <- missile_dat_final_manual_edits %>% 
+  dplyr::select(Country,
+                Year,
+                Month,
+                TestDummy,
+                TestCount,
+                MissileName,
+                MissileFamily,
+                Crisis,
+                EventUNSCResolution,
+                EventUNSCResolutionLag1,
+                EventUNSCResolutionLag2, 
+                EventHOSTravel,
+                EventHOSVisit,
+                EventNotes,
+                EventSource,
+                dplyr::everything(),
+                -DateEntered)
