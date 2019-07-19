@@ -177,8 +177,10 @@ Amelia::missmap(missile_dat_final)
 readr::write_csv(missile_dat_final, 'C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data/missile_dat_final.csv')
 
 
+
 # Manaul data entry will occur at this point 
 # Data will be re-uploaded into R as missile_dat_final_manual_edits
+
 
 
 # Load manually edited data
@@ -189,15 +191,15 @@ visdat::vis_dat(missile_dat_final_manual_edits)
 Amelia::missmap(missile_dat_final_manual_edits)
 
 # Create lag variables for event variables
-missile_dat_final_manual_edits <- plyr::ddply(missile_dat_final_manual_edits, plyr::.(Country), transform, EventUNSCResolutionLag1 =
-                c(NA, EventUNSCResolution[-length(EventUNSCResolution)]
-                )
-)
+missile_dat_final_manual_edits <- plyr::ddply(missile_dat_final_manual_edits, 
+                                              plyr::.(Country), transform, 
+                                              EventUNSCResolutionLag1 = c(NA, EventUNSCResolution[-length(EventUNSCResolution)])
+                                              )
 
-missile_dat_final_manual_edits <- plyr::ddply(missile_dat_final_manual_edits, plyr::.(Country), transform, EventUNSCResolutionLag2 =
-                                                c(NA, EventUNSCResolutionLag1[-length(EventUNSCResolutionLag1)]
-                                                )
-)
+missile_dat_final_manual_edits <- plyr::ddply(missile_dat_final_manual_edits, 
+                                              plyr::.(Country), transform, 
+                                              EventUNSCResolutionLag2 = c(NA, EventUNSCResolutionLag1[-length(EventUNSCResolutionLag1)])
+                                              )
 
 # Drop columns we don't need for the analysis and organize
 missile_dat_final_manual_edits <- missile_dat_final_manual_edits %>% 
@@ -218,3 +220,59 @@ missile_dat_final_manual_edits <- missile_dat_final_manual_edits %>%
                 EventSource,
                 dplyr::everything(),
                 -DateEntered)
+
+# Get rid of NA vals (for the purpose of the logit model)
+missile_dat_final_manual_edits <- missile_dat_final_manual_edits %>%
+  dplyr::mutate(EventUNSCResolution = ifelse(is.na(EventUNSCResolution), 0, EventUNSCResolution),
+                EventUNSCResolutionLag1 = ifelse(is.na(EventUNSCResolutionLag1), 0, EventUNSCResolutionLag1),
+                EventUNSCResolutionLag2 = ifelse(is.na(EventUNSCResolutionLag2), 0, EventUNSCResolutionLag2),
+                Crisis = ifelse(is.na(Crisis), 0, Crisis),
+                EventHOSTravel = ifelse(is.na(EventHOSTravel), 0, EventHOSTravel),
+                EventHOSVisit = ifelse(is.na(EventHOSVisit), 0, EventHOSVisit),
+                TestCount = ifelse(is.na(TestCount), 0, TestCount))
+
+
+# Data analysis
+  # Logit Modelling
+test <- Zelig::zelig(TestDummy ~ Year +
+                       EventUNSCResolution + 
+                       EventUNSCResolutionLag1 + 
+                       EventUNSCResolutionLag2 + 
+                       EventHOSTravel + 
+                       EventHOSVisit +
+                       Crisis, 
+                     data = missile_dat_final_manual_edits,
+                     model = "logit")
+
+evs <- Zelig::setx(test, Year = c(1984:2019))
+
+sim <- Zelig::sim(test, x = evs)
+
+Zelig::summary(sim)
+
+jpeg(filename = "test.jpg")
+Zelig::plot(sim)
+dev.off()
+
+
+logitMod <- glm(TestDummy ~ Year +
+                  EventUNSCResolution + 
+                  EventUNSCResolutionLag1 + 
+                  EventUNSCResolutionLag2 + 
+                  EventHOSTravel + 
+                  EventHOSVisit +
+                  Crisis, 
+                  data=missile_dat_final_manual_edits, 
+                family=binomial(link="logit"))
+
+predicted <- plogis(predict(logitMod, missile_dat_final_manual_edits))  # predicted scores
+# or
+predicted <- predict(logitMod, missile_dat_final_manual_edits, type="response")  # predicted scores
+
+summary(logitMod)
+
+  # Poisson 
+croissant <- Zelig::zelig(TestCount ~ EventUNSCResolution,
+                          data = missile_dat_final_manual_edits,
+                          model = "poisson")
+Zelig::summary(croissant)$coefficients
