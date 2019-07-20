@@ -250,10 +250,12 @@ sim <- Zelig::sim(test, x = evs)
 
 Zelig::summary(sim)
 
+setwd("C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/vis")
 jpeg(filename = "test.jpg")
 Zelig::plot(sim)
 dev.off()
 
+setwd("C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data")
 
 logitMod <- glm(TestDummy ~ Year +
                   EventUNSCResolution + 
