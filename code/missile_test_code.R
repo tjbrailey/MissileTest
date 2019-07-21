@@ -1,11 +1,12 @@
 ### Missile Test Temporal Study ###
-          ### POLI 170A ###
+        ### POLI 170A ###
 
 rm(list = ls())
 
 # Setup
-setwd(paste0(getwd(), '/data/'))
-wd<-setwd(getwd())
+setwd(paste0(here::here(), '/data/'))
+wd <- setwd(paste0(here::here(), '/data/'))
+
 
 # Install required packages
 library(magrittr)
@@ -104,7 +105,6 @@ missile_dat_final <- join
 rm(join)
 
 # Clean
-
 missile_dat_final$Date <- as.character(missile_dat_final$Date)
 missile_dat_final$DateEntered <- as.character(missile_dat_final$DateEntered)
 missile_dat_final$LaunchTimeUTC <- as.character(missile_dat_final$LaunchTimeUTC)
@@ -232,9 +232,10 @@ missile_dat_final_manual_edits <- missile_dat_final_manual_edits %>%
                 TestCount = ifelse(is.na(TestCount), 0, TestCount))
 
 
-# Data analysis
-  # Logit Modelling
-test <- Zelig::zelig(TestDummy ~ Year +
+
+# Data analysis for TestDummy
+  # Logit modelling
+logit1 <- Zelig::zelig(TestDummy ~ Year +
                        EventUNSCResolution + 
                        EventUNSCResolutionLag1 + 
                        EventUNSCResolutionLag2 + 
@@ -243,21 +244,30 @@ test <- Zelig::zelig(TestDummy ~ Year +
                        Crisis, 
                      data = missile_dat_final_manual_edits,
                      model = "logit")
+logit1_evs <- Zelig::setx(logit1)
+logit1_evs_yr <- Zelig::setx(logit1, Year = c(1984:2019))
+logit1_sim <- Zelig::sim(logit1, logit1_evs)
+logit1_sim_yr <- Zelig::sim(logit1, logit1_evs_yr)
+    
+logit1
 
-evs <- Zelig::setx(test, Year = c(1984:2019))
+stargazer::stargazer(Zelig::from_zelig_model(logit1)) # LaTeX
 
-sim <- Zelig::sim(test, x = evs)
+logit_plot1 <- Zelig::plot(logit1_sim)
+logit_plot2 <- Zelig::plot(logit1_sim_yr)
 
-Zelig::summary(sim)
-
-setwd("C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/vis")
-jpeg(filename = "test.jpg")
-Zelig::plot(sim)
+setwd(paste0(here::here(), '/vis/'))
+jpeg(filename = "logit_by_year.jpg")
+Zelig::plot(logit1_sim_yr)
 dev.off()
 
-setwd("C:/Users/Tom Brailey/Dropbox/github_private/MissileTest/data")
+jpeg(filename = "logit_summary.jpg")
+Zelig::plot(logit1_sim) 
+dev.off()
+setwd(paste0(here::here(), '/data/'))
 
-logitMod <- glm(TestDummy ~ Year +
+  # Logit 2 modelling
+logit2 <- glm(TestDummy ~ Year +
                   EventUNSCResolution + 
                   EventUNSCResolutionLag1 + 
                   EventUNSCResolutionLag2 + 
@@ -266,15 +276,78 @@ logitMod <- glm(TestDummy ~ Year +
                   Crisis, 
                   data=missile_dat_final_manual_edits, 
                 family=binomial(link="logit"))
+logit2_predicted <- plogis(predict(logit2, missile_dat_final_manual_edits))  # predicted scores
 
-predicted <- plogis(predict(logitMod, missile_dat_final_manual_edits))  # predicted scores
-# or
-predicted <- predict(logitMod, missile_dat_final_manual_edits, type="response")  # predicted scores
+Zelig::summary(logit2)
 
-summary(logitMod)
+stargazer::stargazer(logit2) # LaTeX
 
-  # Poisson 
-croissant <- Zelig::zelig(TestCount ~ EventUNSCResolution,
+Zelig::plot(logit2)
+
+# Data Analysis for TestCount
+hist(missile_dat_final_manual_edits$TestCount) # A simple histogram shows that the data contain a lot of 0s
+
+  # OLS
+lm1 <- lm(TestCount ~ Year +
+            EventUNSCResolution + 
+            EventUNSCResolutionLag1 + 
+            EventUNSCResolutionLag2 + 
+            EventHOSTravel + 
+            EventHOSVisit +
+            Crisis,
+          data = missile_dat_final_manual_edits)
+    
+    # Check for heteroscedasticity
+par(mfrow=c(2,2))
+plot(lm1)
+
+    # Robust standard errors
+lm1_rob <- estimatr::lm_robust(TestCount ~ Year + 
+                 EventUNSCResolution + 
+                 EventUNSCResolutionLag1 + 
+                 EventUNSCResolutionLag2 + 
+                 EventHOSTravel + 
+                 EventHOSVisit +
+                 Crisis,
+                 data = missile_dat_final_manual_edits)
+summary(lm1_rob) 
+
+lm1_rob %>% # LaTeX
+  estimatr::tidy() %>%
+  xtable::xtable()
+
+  # Poisson modelling
+poisson1 <- Zelig::zelig(TestCount ~ Year + 
+                           EventUNSCResolution + 
+                           EventUNSCResolutionLag1 + 
+                           EventUNSCResolutionLag2 + 
+                           EventHOSTravel + 
+                           EventHOSVisit +
+                           Crisis,
                           data = missile_dat_final_manual_edits,
                           model = "poisson")
-Zelig::summary(croissant)$coefficients
+Zelig::summary(poisson1)
+
+stargazer::stargazer(Zelig::from_zelig_model(poisson1)) # LaTeX
+
+  # Negative binomial
+negbin1 <- Zelig::zelig(TestCount ~ Year +
+                          EventUNSCResolution + 
+                          EventUNSCResolutionLag1 + 
+                          EventUNSCResolutionLag2 + 
+                          EventHOSTravel + 
+                          EventHOSVisit +
+                          Crisis,
+                        data = missile_dat_final_manual_edits,
+                        model = "negbin")
+Zelig::summary(negbin1)
+
+negbin1_evs <- Zelig::setx(negbin1)
+negbin1_evs_yr <- Zelig::setx(negbin1, Year = c(1984:2019))
+negbin1_sim <- Zelig::sim(negbin1, negbin1_evs)
+negbin1_sim_yr <- Zelig::sim(negbin1, negbin1_evs_yr)
+
+Zelig::plot(negbin1_sim)
+Zelig::plot(negbin_sim_yr)
+
+stargazer::stargazer(Zelig::from_zelig_model(negbin1)) # LaTeX
