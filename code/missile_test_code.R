@@ -348,6 +348,6 @@ negbin1_sim <- Zelig::sim(negbin1, negbin1_evs)
 negbin1_sim_yr <- Zelig::sim(negbin1, negbin1_evs_yr)
 
 Zelig::plot(negbin1_sim)
-Zelig::plot(negbin_sim_yr)
+Zelig::plot(negbin1_sim_yr)
 
 stargazer::stargazer(Zelig::from_zelig_model(negbin1)) # LaTeX
