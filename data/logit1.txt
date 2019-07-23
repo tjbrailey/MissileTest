@@ -1,0 +1,46 @@
+
+Logistic Regression Output (Core Hypothesis)
+===================================================
+                            Dependent variable:    
+                        ---------------------------
+                                 TestDummy         
+---------------------------------------------------
+Year                             0.069***          
+                                  (0.012)          
+                                                   
+CountryIraq                      -3.509***         
+                                  (0.620)          
+                                                   
+CountryNorth Korea                -0.398           
+                                  (0.252)          
+                                                   
+CountryPakistan                  -1.337***         
+                                  (0.314)          
+                                                   
+EventUNSCResolution              1.411***          
+                                  (0.251)          
+                                                   
+EventUNSCResolutionLag1           -0.093           
+                                  (0.311)          
+                                                   
+EventUNSCResolutionLag2           -0.002           
+                                  (0.311)          
+                                                   
+EventHOSTravel                    -0.482           
+                                  (0.305)          
+                                                   
+EventHOSVisit                     0.584*           
+                                  (0.339)          
+                                                   
+Crisis                            -0.120           
+                                  (0.241)          
+                                                   
+Constant                        -139.181***        
+                                 (23.138)          
+                                                   
+---------------------------------------------------
+Observations                       1,728           
+Log Likelihood                   -372.359          
+Akaike Inf. Crit.                 766.718          
+===================================================
+Note:                   *p<0.1; **p<0.05; ***p<0.01

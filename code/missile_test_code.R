@@ -190,6 +190,11 @@ missile_dat_final_manual_edits <- rio::import("missile_dat_final_manual_edits.cs
 visdat::vis_dat(missile_dat_final_manual_edits)
 Amelia::missmap(missile_dat_final_manual_edits)
 
+# Clean
+missile_dat_final_manual_edits$Year <- as.numeric(missile_dat_final_manual_edits$Year)
+missile_dat_final_manual_edits$Country <- as.factor(missile_dat_final_manual_edits$Country)
+missile_dat_final_manual_edits <- dplyr::as_tibble(missile_dat_final_manual_edits)
+
 # Create lag variables for event variables
 missile_dat_final_manual_edits <- plyr::ddply(missile_dat_final_manual_edits, 
                                               plyr::.(Country), transform, 
@@ -235,7 +240,9 @@ missile_dat_final_manual_edits <- missile_dat_final_manual_edits %>%
 
 # Data analysis for TestDummy
   # Logit modelling
-logit1 <- Zelig::zelig(TestDummy ~ Year +
+logit1 <- Zelig::zelig(TestDummy ~
+                       Year +
+                       Country +
                        EventUNSCResolution + 
                        EventUNSCResolutionLag1 + 
                        EventUNSCResolutionLag2 + 
@@ -244,19 +251,24 @@ logit1 <- Zelig::zelig(TestDummy ~ Year +
                        Crisis, 
                      data = missile_dat_final_manual_edits,
                      model = "logit")
+
+# Set WD to save all visualizations and tables
+setwd(paste0(here::here(), '/vis/'))
+
+#stargazer::stargazer(Zelig::from_zelig_model(logit1), 
+#                     type = "text",
+#                     title = "Logistic Regression Output (Core Hypothesis)",
+#                     out = "logit1.tex") # LaTeX
+#dev.off()
+
 logit1_evs <- Zelig::setx(logit1)
 logit1_evs_yr <- Zelig::setx(logit1, Year = c(1984:2019))
-logit1_sim <- Zelig::sim(logit1, logit1_evs)
-logit1_sim_yr <- Zelig::sim(logit1, logit1_evs_yr)
+logit1_sim <- Zelig::sim(logit1, x = logit1_evs)
+logit1_sim_yr <- Zelig::sim(logit1, x = logit1_evs_yr)
     
-logit1
-
-stargazer::stargazer(Zelig::from_zelig_model(logit1)) # LaTeX
-
 logit_plot1 <- Zelig::plot(logit1_sim)
 logit_plot2 <- Zelig::plot(logit1_sim_yr)
 
-setwd(paste0(here::here(), '/vis/'))
 jpeg(filename = "logit_by_year.jpg")
 Zelig::plot(logit1_sim_yr)
 dev.off()
@@ -264,10 +276,11 @@ dev.off()
 jpeg(filename = "logit_summary.jpg")
 Zelig::plot(logit1_sim) 
 dev.off()
-setwd(paste0(here::here(), '/data/'))
 
-  # Logit 2 modelling
+
+  # Logit 2 modelling (ensure that I get the same results as in Zelig)
 logit2 <- glm(TestDummy ~ Year +
+                  Country +
                   EventUNSCResolution + 
                   EventUNSCResolutionLag1 + 
                   EventUNSCResolutionLag2 + 
@@ -280,15 +293,21 @@ logit2_predicted <- plogis(predict(logit2, missile_dat_final_manual_edits))  # p
 
 Zelig::summary(logit2)
 
-stargazer::stargazer(logit2) # LaTeX
+#stargazer::stargazer(logit2) # LaTeX
 
+jpeg(filename = "logit_resid.jpg")
+par(mfrow=c(2,2))
 Zelig::plot(logit2)
+dev.off()
 
 # Data Analysis for TestCount
+jpeg(filename = "data_hist.jpg")
 hist(missile_dat_final_manual_edits$TestCount) # A simple histogram shows that the data contain a lot of 0s
+dev.off()
 
   # OLS
 lm1 <- lm(TestCount ~ Year +
+            Country +
             EventUNSCResolution + 
             EventUNSCResolutionLag1 + 
             EventUNSCResolutionLag2 + 
@@ -298,14 +317,49 @@ lm1 <- lm(TestCount ~ Year +
           data = missile_dat_final_manual_edits)
 summary(lm1)
 
-stargazer::stargazer(lm1) # LaTeX
+lm2 <- lm(TestCount ~ Country +
+            EventUNSCResolution + 
+            EventUNSCResolutionLag1 + 
+            EventUNSCResolutionLag2 + 
+            EventHOSTravel + 
+            EventHOSVisit,
+          data = missile_dat_final_manual_edits)
+summary(lm2)
+
+lm3 <- lm(TestCount ~ Country +
+            EventUNSCResolution + 
+            EventUNSCResolutionLag1 + 
+            EventUNSCResolutionLag2 + 
+            EventHOSTravel + 
+            EventHOSVisit +
+            Crisis:Year,
+          data = missile_dat_final_manual_edits)
+summary(lm3)
+
+lm4 <- lm(TestCount ~ Country +
+            EventUNSCResolution + 
+            EventUNSCResolutionLag1 + 
+            EventUNSCResolutionLag2 + 
+            EventHOSTravel + 
+            EventHOSVisit +
+            Crisis*Year,
+          data = missile_dat_final_manual_edits)
+summary(lm4)
+
+#stargazer::stargazer(lm1, lm2, lm3, lm4,
+#                     type = "text",
+#                     title = "Linear Model Outputs",
+#                     out = "lm.tex") # LaTeX
     
     # Check for heteroscedasticity
+jpeg(filename = "het_checks.jpg")
 par(mfrow=c(2,2))
 plot(lm1)
+dev.off()
 
     # Robust standard errors
 lm1_rob <- estimatr::lm_robust(TestCount ~ Year + 
+                 Country +
                  EventUNSCResolution + 
                  EventUNSCResolutionLag1 + 
                  EventUNSCResolutionLag2 + 
@@ -315,12 +369,14 @@ lm1_rob <- estimatr::lm_robust(TestCount ~ Year +
                  data = missile_dat_final_manual_edits)
 summary(lm1_rob) 
 
-lm1_rob %>% # LaTeX
-  estimatr::tidy() %>%
-  xtable::xtable()
+#lm1_rob %>% # LaTeX
+#  estimatr::tidy() %>%
+#  xtable::xtable() %>%
+#  xtable::print.xtable(file = "lm1_rob.tex")
 
   # Poisson modelling
 poisson1 <- Zelig::zelig(TestCount ~ Year + 
+                           Country +
                            EventUNSCResolution + 
                            EventUNSCResolutionLag1 + 
                            EventUNSCResolutionLag2 + 
@@ -331,10 +387,14 @@ poisson1 <- Zelig::zelig(TestCount ~ Year +
                           model = "poisson")
 Zelig::summary(poisson1)
 
-stargazer::stargazer(Zelig::from_zelig_model(poisson1)) # LaTeX
+#stargazer::stargazer(Zelig::from_zelig_model(poisson1),
+#                     type = "text",
+#                     title = "Poisson Distribution",
+#                     out = "poisson1.tex") # LaTeX
 
   # Negative binomial
-negbin1 <- Zelig::zelig(TestCount ~ Year +
+negbin1 <- Zelig::zelig(TestCount ~ Year + 
+                          Country +
                           EventUNSCResolution + 
                           EventUNSCResolutionLag1 + 
                           EventUNSCResolutionLag2 + 
@@ -350,7 +410,19 @@ negbin1_evs_yr <- Zelig::setx(negbin1, Year = c(1984:2019))
 negbin1_sim <- Zelig::sim(negbin1, negbin1_evs)
 negbin1_sim_yr <- Zelig::sim(negbin1, negbin1_evs_yr)
 
+jpeg(filename = "negbin_summary.jpeg")
 Zelig::plot(negbin1_sim)
-Zelig::plot(negbin1_sim_yr)
+dev.off()
 
-stargazer::stargazer(Zelig::from_zelig_model(negbin1)) # LaTeX
+jpeg(filename = "negbin_summary_yr.jpeg")
+Zelig::plot(negbin1_sim_yr)
+dev.off()
+
+#stargazer::stargazer(Zelig::from_zelig_model(negbin1),
+#                     type = "text",
+#                     title = "Negative Binomial Model for Count DV",
+#                     out = "negbin1.tex") # LaTeX
+
+
+
+# Next steps: Convert data to time-series
