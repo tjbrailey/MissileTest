@@ -296,6 +296,9 @@ lm1 <- lm(TestCount ~ Year +
             EventHOSVisit +
             Crisis,
           data = missile_dat_final_manual_edits)
+summary(lm1)
+
+stargazer::stargazer(lm1) # LaTeX
     
     # Check for heteroscedasticity
 par(mfrow=c(2,2))
