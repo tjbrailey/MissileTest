@@ -262,12 +262,31 @@ setwd(paste0(here::here(), '/vis/'))
 #dev.off()
 
 logit1_evs <- Zelig::setx(logit1)
-logit1_evs_yr <- Zelig::setx(logit1, Year = c(1984:2019))
 logit1_sim <- Zelig::sim(logit1, x = logit1_evs)
+
+logit1_evs_yr <- Zelig::setx(logit1, Year = c(1984:2019))
 logit1_sim_yr <- Zelig::sim(logit1, x = logit1_evs_yr)
-    
+
+logit1_evs_unsc <- Zelig::setx(logit1, EventUNSCResolution = c(0:1))
+logit1_sim_unsc <- Zelig::sim(logit1, x = logit1_evs_unsc)
+
+logit1_evs_hosv <- Zelig::setx(logit1, EventHOSVisit = c(0:1))
+logit1_sim_hosv <- Zelig::sim(logit1, x = logit1_evs_hosv)
+
+logit1_evs_host <- Zelig::setx(logit1, EventHOSTravel = c(0:1))
+logit1_sim_host <- Zelig::sim(logit1, x = logit1_evs_host)
+
+logit1_evs_crs <- Zelig::setx(logit1, Crisis = c(0:1))
+logit1_sim_crs <- Zelig::sim(logit1, x = logit1_evs_crs)
+
 logit_plot1 <- Zelig::plot(logit1_sim)
+
+par(mfrow = c(3,2))
 logit_plot2 <- Zelig::plot(logit1_sim_yr)
+logit_plot3 <- Zelig::plot(logit1_sim_unsc)
+logit_plot4 <- Zelig::plot(logit1_sim_hosv)
+logit_plot5 <- Zelig::plot(logit1_sim_host)
+logit_plot6 <- Zelig::plot(logit1_sim_crs)
 
 jpeg(filename = "logit_by_year.jpg")
 Zelig::plot(logit1_sim_yr)
@@ -276,7 +295,6 @@ dev.off()
 jpeg(filename = "logit_summary.jpg")
 Zelig::plot(logit1_sim) 
 dev.off()
-
 
   # Logit 2 modelling (ensure that I get the same results as in Zelig)
 logit2 <- glm(TestDummy ~ Year +
@@ -296,7 +314,7 @@ Zelig::summary(logit2)
 #stargazer::stargazer(logit2) # LaTeX
 
 jpeg(filename = "logit_resid.jpg")
-par(mfrow=c(2,2))
+par(mfrow = c(2,2))
 Zelig::plot(logit2)
 dev.off()
 
@@ -353,7 +371,7 @@ summary(lm4)
     
     # Check for heteroscedasticity
 jpeg(filename = "het_checks.jpg")
-par(mfrow=c(2,2))
+par(mfrow = c(2,2))
 plot(lm1)
 dev.off()
 
