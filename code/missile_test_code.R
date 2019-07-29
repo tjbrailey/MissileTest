@@ -238,6 +238,9 @@ missile_dat_final_manual_edits <- missile_dat_final_manual_edits %>%
 
 
 
+# Set WD to save all visualizations and tables
+setwd(paste0(here::here(), '/vis/'))
+
 # Data analysis for TestDummy
   # Logit modelling
 logit1 <- Zelig::zelig(TestDummy ~
@@ -251,9 +254,6 @@ logit1 <- Zelig::zelig(TestDummy ~
                        Crisis, 
                      data = missile_dat_final_manual_edits,
                      model = "logit")
-
-# Set WD to save all visualizations and tables
-setwd(paste0(here::here(), '/vis/'))
 
 #stargazer::stargazer(Zelig::from_zelig_model(logit1), 
 #                     type = "text",
@@ -281,12 +281,14 @@ logit1_sim_crs <- Zelig::sim(logit1, x = logit1_evs_crs)
 
 logit_plot1 <- Zelig::plot(logit1_sim)
 
+jpeg(filename = "logit_all.jpg")
 par(mfrow = c(3,2))
 logit_plot2 <- Zelig::plot(logit1_sim_yr)
 logit_plot3 <- Zelig::plot(logit1_sim_unsc)
 logit_plot4 <- Zelig::plot(logit1_sim_hosv)
 logit_plot5 <- Zelig::plot(logit1_sim_host)
 logit_plot6 <- Zelig::plot(logit1_sim_crs)
+dev.off()
 
 jpeg(filename = "logit_by_year.jpg")
 Zelig::plot(logit1_sim_yr)
@@ -310,6 +312,10 @@ logit2 <- glm(TestDummy ~ Year +
 logit2_predicted <- plogis(predict(logit2, missile_dat_final_manual_edits))  # predicted scores
 
 Zelig::summary(logit2)
+
+jpeg(filename = "logit2_coef.jpg")
+dotwhisker::dwplot(logit2)
+dev.off()
 
 #stargazer::stargazer(logit2) # LaTeX
 
