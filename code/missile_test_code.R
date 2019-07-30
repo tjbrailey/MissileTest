@@ -313,6 +313,12 @@ logit2_predicted <- plogis(predict(logit2, missile_dat_final_manual_edits))  # p
 
 Zelig::summary(logit2)
 
+stargazer::stargazer(logit2, 
+                     type = "text",
+                     title = "Logistic Regression Output (Core Hypothesis)",
+                     out = "logit1.tex") # LaTeX
+dev.off()
+
 jpeg(filename = "logit2_coef.jpg")
 dotwhisker::dwplot(logit2)
 dev.off()
