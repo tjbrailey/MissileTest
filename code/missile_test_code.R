@@ -436,9 +436,31 @@ negbin1 <- Zelig::zelig(TestCount ~ Year +
 Zelig::summary(negbin1)
 
 negbin1_evs <- Zelig::setx(negbin1)
-negbin1_evs_yr <- Zelig::setx(negbin1, Year = c(1984:2019))
 negbin1_sim <- Zelig::sim(negbin1, negbin1_evs)
+
+negbin1_evs_yr <- Zelig::setx(negbin1, Year = c(1984:2019))
 negbin1_sim_yr <- Zelig::sim(negbin1, negbin1_evs_yr)
+
+negbin1_evs_unsc <- Zelig::setx(negbin1, EventUNSCResolution = c(0:1))
+negbin1_sim_unsc <- Zelig::sim(negbin1, x = negbin1_evs_unsc)
+
+negbin1_evs_hosv <- Zelig::setx(negbin1, EventHOSVisit = c(0:1))
+negbin1_sim_hosv <- Zelig::sim(negbin1, x = negbin1_evs_hosv)
+
+negbin1_evs_host <- Zelig::setx(negbin1, EventHOSTravel = c(0:1))
+negbin1_sim_host <- Zelig::sim(negbin1, x = negbin1_evs_host)
+
+negbin1_evs_crs <- Zelig::setx(negbin1, Crisis = c(0:1))
+negbin1_sim_crs <- Zelig::sim(negbin1, x = negbin1_evs_crs)
+
+jpeg(filename = "negbin_all.jpg")
+par(mfrow = c(3,2))
+negbin_plot2 <- Zelig::plot(negbin1_sim_yr)
+negbin_plot3 <- Zelig::plot(negbin1_sim_unsc)
+negbin_plot4 <- Zelig::plot(negbin1_sim_hosv)
+negbin_plot5 <- Zelig::plot(negbin1_sim_host)
+negbin_plot6 <- Zelig::plot(negbin1_sim_crs)
+dev.off()
 
 jpeg(filename = "negbin_summary.jpeg")
 Zelig::plot(negbin1_sim)
