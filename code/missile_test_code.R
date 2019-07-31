@@ -448,6 +448,10 @@ jpeg(filename = "negbin_summary_yr.jpeg")
 Zelig::plot(negbin1_sim_yr)
 dev.off()
 
+jpeg(filename = "vis_dat.jpeg")
+visdat::vis_dat(missile_dat_final_manual_edits)
+dev.off()
+
 #stargazer::stargazer(Zelig::from_zelig_model(negbin1),
 #                     type = "text",
 #                     title = "Negative Binomial Model for Count DV",
